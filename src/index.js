@@ -194,8 +194,17 @@ module.exports = class Reader extends Component {
     preview.playsInline = true
 
     const streamTrack = stream.getTracks()[0]
+
     // Assign `stopCamera` so the track can be stopped once component is cleared
-    this.stopCamera = streamTrack.stop.bind(streamTrack)
+    // Taking advice of BelkinVadim for more stable stopping implementation to avoid freezing
+    // https://github.com/twilio/twilio-video-app-react/issues/355#issuecomment-780368725
+    this.stopCamera = function() {
+      stream.getTracks().forEach(function(track) {
+        // delete track before stopping it
+        stream.removeTrack(track);
+        track.stop();
+      });
+    };
 
     preview.addEventListener('loadstart', this.handleLoadStart)
 
